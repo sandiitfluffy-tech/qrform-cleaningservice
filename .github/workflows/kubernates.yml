@@ -8,7 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: [self-hosted, k3smaster]
-    if: github.event.pull_request.merged == true
+    #if: github.event.pull_request.merged == true
 
     permissions:
       contents: read
