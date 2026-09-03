@@ -6,7 +6,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: [self-hosted, k3smaster]
+    runs-on: [self-hosted, Linux]
 
     permissions:
       contents: read
