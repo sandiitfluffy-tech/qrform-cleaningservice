@@ -1,14 +1,13 @@
 name: Deploy Production FBSV2 to Kubernetes
 
 on:
-  pull_request:
-    types: [closed]
-    branches: ["staging"]
+  push:
+    branches: ["main"]
 # Aktif ketika PR dari release-SIT dan disetujui (merged)
 
 jobs:
   deploy:
-    runs-on: [self-hosted, stagingg]
+    runs-on: [self-hosted, k3smaster]
     if: github.event.pull_request.merged == true
 
     permissions:
