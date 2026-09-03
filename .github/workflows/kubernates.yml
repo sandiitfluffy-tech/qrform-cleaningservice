@@ -3,12 +3,10 @@ name: Deploy Production FBSV2 to Kubernetes
 on:
   push:
     branches: ["main"]
-# Aktif ketika PR dari release-SIT dan disetujui (merged)
 
 jobs:
   deploy:
     runs-on: [self-hosted, k3smaster]
-    #if: github.event.pull_request.merged == true
 
     permissions:
       contents: read
@@ -59,12 +57,10 @@ jobs:
           kubectl apply -f react-service-lb.yaml
           
           # Update image tag menggunakan image dari GHCR
-          kubectl set image deployment/fe-fbsv2-deployment fe-fbsv2=ghcr.io/ghcr.io/${{ env.REPO_OWNER }}/fe-fbsv2:${{ env.IMAGE_TAG }}
+          kubectl set image deployment/fe-fbsv2-deployment fe-fbsv2=ghcr.io/${{ env.REPO_OWNER }}/fe-fbsv2:${{ env.IMAGE_TAG }}
           kubectl rollout status deployment/fe-fbsv2-deployment
 
       # 4. Cleanup Image lokal di Runner (agar disk server runner tidak penuh)
       - name: Hapus image lama di Runner
         run: |
           docker image prune -f
-
-    
