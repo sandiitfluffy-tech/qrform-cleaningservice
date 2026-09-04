@@ -8,7 +8,7 @@ env:
   KUBECTL: /usr/local/bin/kubectl
   IMAGE_NAME: qr-form
   DEPLOYMENT: react-app
-  CONTAINER: qr-form
+  CONTAINER: react
 
 jobs:
   deploy:
