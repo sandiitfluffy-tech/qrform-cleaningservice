@@ -40,7 +40,7 @@ jobs:
           context: .
           push: true
           build-args: |
-            ENV_FILE=.env.staging
+            ENV_FILE=.env
           tags: |
             ghcr.io/${{ env.REPO_OWNER }}/fe-fbsv2:${{ env.IMAGE_TAG }}
             ghcr.io/${{ env.REPO_OWNER }}/fe-fbsv2:latest
