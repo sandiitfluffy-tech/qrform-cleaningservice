@@ -4,7 +4,7 @@ on:
     branches: ["main"]
 jobs:
   deploy:
-    runs-on: [self-hosted, Linux]
+    runs-on: [self-hosted, k3smaster]
     permissions:
       contents: read
       packages: write
@@ -45,14 +45,24 @@ jobs:
             ghcr.io/${{ env.REPO_OWNER }}/fe-fbsv2:${{ env.IMAGE_TAG }}
             ghcr.io/${{ env.REPO_OWNER }}/fe-fbsv2:latest
 
+      # - name: Deploy ke Cluster Kubernetes
+      #   env:
+      #     KUBECONFIG: /home/itdev/.kube/config
+      #   run: |
+      #     kubectl apply -f react-deployment.yaml
+      #     kubectl apply -f react-service-lb.yaml
+      #     kubectl set image deployment/fe-fbsv2-deployment fe-fbsv2=ghcr.io/${{ env.REPO_OWNER }}/fe-fbsv2:${{ env.IMAGE_TAG }}
+      #     kubectl rollout status deployment/fe-fbsv2-deployment
       - name: Deploy ke Cluster Kubernetes
         env:
           KUBECONFIG: /home/itdev/.kube/config
         run: |
-          kubectl apply -f react-deployment.yaml
-          kubectl apply -f react-service-lb.yaml
-          kubectl set image deployment/fe-fbsv2-deployment fe-fbsv2=ghcr.io/${{ env.REPO_OWNER }}/fe-fbsv2:${{ env.IMAGE_TAG }}
-          kubectl rollout status deployment/fe-fbsv2-deployment
+          hostname; whoami; echo "PATH=$PATH"
+          KUBECTL=/usr/local/bin/kubectl
+          $KUBECTL apply -f react-deployment.yaml
+          $KUBECTL apply -f react-service-lb.yaml
+          $KUBECTL set image deployment/fe-fbsv2-deployment fe-fbsv2=ghcr.io/${{ env.REPO_OWNER }}/fe-fbsv2:${{ env.IMAGE_TAG }}
+          $KUBECTL rollout status deployment/fe-fbsv2-deployment --timeout=5m
 
       - name: Hapus image lama di Runner
         run: docker image prune -f
