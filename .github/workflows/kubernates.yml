@@ -6,9 +6,9 @@ on:
 
 env:
   KUBECTL: /usr/local/bin/kubectl
-  IMAGE_NAME: fe-fbsv2
-  DEPLOYMENT: fe-fbsv2-deployment
-  CONTAINER: fe-fbsv2
+  IMAGE_NAME: qr-form
+  DEPLOYMENT: react-app
+  CONTAINER: qr-form
 
 jobs:
   deploy:
