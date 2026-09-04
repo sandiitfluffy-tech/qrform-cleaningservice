@@ -1,7 +1,15 @@
 name: Deploy Production FBSV2 to Kubernetes
+
 on:
   push:
     branches: ["main"]
+
+env:
+  KUBECTL: /usr/local/bin/kubectl
+  IMAGE_NAME: fe-fbsv2
+  DEPLOYMENT: fe-fbsv2-deployment
+  CONTAINER: fe-fbsv2
+
 jobs:
   deploy:
     runs-on: [self-hosted, k3smaster]
@@ -11,18 +19,16 @@ jobs:
     defaults:
       run:
         working-directory: ${{ github.workspace }}
+
     steps:
       - name: Checkout Code ke runner
         uses: actions/checkout@v4
-
-      - name: Add kubectl to PATH
-        run: echo "/usr/local/bin" >> $GITHUB_PATH
 
       - name: Set Image Tag (date)
         run: echo "IMAGE_TAG=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_ENV
 
       - name: Set Repository Name (Lowercase)
-        run: echo "REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+        run: echo "REPO_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Log in to Registry
         uses: docker/login-action@v3
@@ -42,27 +48,28 @@ jobs:
           build-args: |
             ENV_FILE=.env
           tags: |
-            ghcr.io/${{ env.REPO_OWNER }}/fe-fbsv2:${{ env.IMAGE_TAG }}
-            ghcr.io/${{ env.REPO_OWNER }}/fe-fbsv2:latest
+            ghcr.io/${{ env.REPO_OWNER }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+            ghcr.io/${{ env.REPO_OWNER }}/${{ env.IMAGE_NAME }}:latest
 
-      # - name: Deploy ke Cluster Kubernetes
-      #   env:
-      #     KUBECONFIG: /home/itdev/.kube/config
-      #   run: |
-      #     kubectl apply -f react-deployment.yaml
-      #     kubectl apply -f react-service-lb.yaml
-      #     kubectl set image deployment/fe-fbsv2-deployment fe-fbsv2=ghcr.io/${{ env.REPO_OWNER }}/fe-fbsv2:${{ env.IMAGE_TAG }}
-      #     kubectl rollout status deployment/fe-fbsv2-deployment
       - name: Deploy ke Cluster Kubernetes
         env:
           KUBECONFIG: /home/itdev/.kube/config
         run: |
-          hostname; whoami; echo "PATH=$PATH"
-          KUBECTL=/usr/local/bin/kubectl
-          $KUBECTL apply -f react-deployment.yaml
+          IMAGE="ghcr.io/${REPO_OWNER}/${IMAGE_NAME}:${IMAGE_TAG}"
+
           $KUBECTL apply -f react-service-lb.yaml
-          $KUBECTL set image deployment/fe-fbsv2-deployment fe-fbsv2=ghcr.io/${{ env.REPO_OWNER }}/fe-fbsv2:${{ env.IMAGE_TAG }}
-          $KUBECTL rollout status deployment/fe-fbsv2-deployment --timeout=5m
+          $KUBECTL apply -f react-deployment.yaml
+          $KUBECTL set image deployment/${DEPLOYMENT} ${CONTAINER}=${IMAGE}
+          $KUBECTL rollout status deployment/${DEPLOYMENT} --timeout=5m
+
+      - name: Tampilkan kondisi pod jika gagal
+        if: failure()
+        env:
+          KUBECONFIG: /home/itdev/.kube/config
+        run: |
+          $KUBECTL get pods -l app=${IMAGE_NAME} -o wide || true
+          $KUBECTL describe deployment/${DEPLOYMENT} | tail -30 || true
 
       - name: Hapus image lama di Runner
+        if: always()
         run: docker image prune -f
